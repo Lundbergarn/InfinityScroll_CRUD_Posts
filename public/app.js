@@ -12,7 +12,7 @@
   const html = document.documentElement;
 
   // XHTTP Reqeust GET
-  xmlReqGet = (start) => {
+  const xmlReqGet = (start) => {
     const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
@@ -34,7 +34,7 @@
   xmlReqGet(start);
 
   // XHTTP DELETE
-  xmlReqDelete = (id) => {
+  const xmlReqDelete = (id) => {
     const xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function () {
@@ -48,7 +48,7 @@
   }
 
   // xHTTP POST
-  xmlReqPost = (input) => {
+  const xmlReqPost = (input) => {
     const xhttp = new XMLHttpRequest();
     xhttp.open("POST", `/articles`, true);
     xhttp.setRequestHeader("Content-type", "application/json");
@@ -56,7 +56,7 @@
   }
 
   // xHTTP PATCH
-  xmlReqPatch = (input, id) => {
+  const xmlReqPatch = (input, id) => {
     const xhttp = new XMLHttpRequest();
     xhttp.open("PATCH", `/articles/${id}`, true);
     xhttp.setRequestHeader("Content-type", "application/json");
@@ -64,7 +64,7 @@
   }
 
   // xHTTP GET ONE
-  xmlReqGetOne = (id) => {
+  const xmlReqGetOne = (id) => {
     idPatch = id;
     // Switch to true to not save new obj
     update = true;
@@ -122,7 +122,7 @@
   })
 
   // Create Article
-  createArticleElement = (data) => {
+  const createArticleElement = (data) => {
     let { content, title, author, created, id } = data;
 
     created = formatDate(created);
@@ -144,7 +144,7 @@
   }
 
   // Formate Date
-  formatDate = (created) => {
+  const formatDate = (created) => {
     let date2 = new Date(created);
     let year = date2.getFullYear();
     let month = date2.getMonth();
