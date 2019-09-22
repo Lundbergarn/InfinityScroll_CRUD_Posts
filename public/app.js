@@ -2,6 +2,7 @@
   let start = 0;
   let idPatch = "";
   let update = false;
+  let totalPosts = 0;
   let content = document.querySelector('#responseElement');
   let elementContainer = document.querySelector('#elementContainer');
   let inputTitle = document.querySelector('#inputTitle');
@@ -23,6 +24,7 @@
           allElements += elem;
         });
 
+        totalPosts = Number(xhttp.getResponseHeader('X-Total-Count'));
         elementContainer.innerHTML += allElements;
       }
     };
@@ -87,13 +89,35 @@
   // Functions *********************************************************************
   // Functions *********************************************************************
 
-  // Scroll load function
-  document.addEventListener('scroll', () => {
+  // Debounce
+  function debounce(func, wait = 20, immediate = true) {
+    var timeout;
+    return function () {
+      var context = this, args = arguments;
+      var later = function () {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  };
+
+  const scrollPostLoad = () => {
+    console.log(html.clientHeight + html.scrollTop + 100)
+    // Check if all posts are loaded
+    if (start + 10 > totalPosts) return;
+
     if (html.clientHeight + html.scrollTop + 100 > body.offsetHeight) {
       start += 10;
       xmlReqGet(start);
     }
-  })
+  }
+
+  // Scroll load function
+  window.addEventListener('scroll', debounce(scrollPostLoad));
 
   // Remove item function
   document.addEventListener('click', function (e) {
@@ -103,6 +127,7 @@
 
     // Check if button is remove or update
     if (e.target.closest('BUTTON').getAttribute('data-idDelete')) {
+
       // Check if button or icon on button is pressed
       if (e.target.tagName === 'BUTTON') {
         xmlReqDelete(e.target.closest('BUTTON').getAttribute('data-idDelete'));
@@ -115,6 +140,7 @@
         setTimeout(function () { e.target.parentElement.parentElement.parentElement.remove() }, 500);
       }
     }
+
     // Check if update button is pressed
     else if (e.target.closest('BUTTON').getAttribute('data-idUpdate')) {
       xmlReqGetOne(e.target.closest('BUTTON').getAttribute('data-idUpdate'));
