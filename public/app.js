@@ -1,14 +1,13 @@
 (function () {
   let start = 0;
   let idPatch = "";
-  let update = false;
   let totalPosts = 0;
+  let update = false;
+  let inputTitle = document.querySelector('#inputTitle');
+  let inputAuthor = document.querySelector('#inputAuthor');
+  let inputContent = document.querySelector('#inputContent');
   let content = document.querySelector('#responseElement');
   let elementContainer = document.querySelector('#elementContainer');
-  let inputTitle = document.querySelector('#inputTitle');
-  let inputContent = document.querySelector('#inputContent');
-  let inputAuthor = document.querySelector('#inputAuthor');
-
   const body = document.body;
   const html = document.documentElement;
 
@@ -17,34 +16,26 @@
     const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-        let allElements = "";
 
+        let allElements = "";
         JSON.parse(xhttp.response).forEach(data => {
           let elem = createArticleElement(data);
           allElements += elem;
         });
+        elementContainer.innerHTML += allElements;
 
         totalPosts = Number(xhttp.getResponseHeader('X-Total-Count'));
-        elementContainer.innerHTML += allElements;
-      }
+      };
     };
     xhttp.open("GET", `/articles?_start=${start}&_limit=10`, true);
     xhttp.send();
   };
-
   // Run Initial
   xmlReqGet(start);
 
   // XHTTP DELETE
   const xmlReqDelete = (id) => {
     const xhttp = new XMLHttpRequest();
-
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        console.log(`Item ${id} removed`);
-      }
-    };
-
     xhttp.open("DELETE", `/articles/${id}`, true);
     xhttp.send();
   }
@@ -68,9 +59,8 @@
   // xHTTP GET ONE
   const xmlReqGetOne = (id) => {
     idPatch = id;
-    // Switch to true to not save new obj
     update = true;
-
+    // Switch to true to not save new obj
     const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
@@ -87,10 +77,8 @@
   }
 
   // Functions *********************************************************************
-  // Functions *********************************************************************
-
   // Debounce
-  function debounce(func, wait = 20, immediate = true) {
+  const debounce = (func, wait = 20, immediate = true) => {
     var timeout;
     return function () {
       var context = this, args = arguments;
@@ -105,42 +93,38 @@
     };
   };
 
+  // Scroll load function
   const scrollPostLoad = () => {
-    console.log(html.clientHeight + html.scrollTop + 100)
     // Check if all posts are loaded
     if (start + 10 > totalPosts) return;
-
     if (html.clientHeight + html.scrollTop + 100 > body.offsetHeight) {
       start += 10;
       xmlReqGet(start);
     }
   }
-
-  // Scroll load function
   window.addEventListener('scroll', debounce(scrollPostLoad));
 
-  // Remove item function
+  // Remove item
   document.addEventListener('click', function (e) {
-
-    // Return if no button
     if (e.target.closest('BUTTON') === null) return;
 
     // Check if button is remove or update
     if (e.target.closest('BUTTON').getAttribute('data-idDelete')) {
+      let deleteBtn = e.target.parentElement.parentElement;
+      let deleteBtnIcon = e.target.parentElement.parentElement.parentElement;
 
       // Check if button or icon on button is pressed
       if (e.target.tagName === 'BUTTON') {
         xmlReqDelete(e.target.closest('BUTTON').getAttribute('data-idDelete'));
-        e.target.parentElement.parentElement.style.opacity = '0';
-        setTimeout(function () { e.target.parentElement.parentElement.remove() }, 500);
+        deleteBtn.style.opacity = '0';
+        setTimeout(function () { deleteBtn.remove() }, 500);
       }
       else {
         xmlReqDelete(e.target.closest('BUTTON').getAttribute('data-idDelete'));
-        e.target.parentElement.parentElement.parentElement.style.opacity = '0';
-        setTimeout(function () { e.target.parentElement.parentElement.parentElement.remove() }, 500);
+        deleteBtnIcon.style.opacity = '0';
+        setTimeout(function () { deleteBtnIcon.remove() }, 500);
       }
     }
-
     // Check if update button is pressed
     else if (e.target.closest('BUTTON').getAttribute('data-idUpdate')) {
       xmlReqGetOne(e.target.closest('BUTTON').getAttribute('data-idUpdate'));
@@ -150,9 +134,7 @@
   // Create Article
   const createArticleElement = (data) => {
     let { content, title, author, created, id } = data;
-
     created = formatDate(created);
-
     return (
       `<article>
         <div class="buttons">
@@ -184,7 +166,7 @@
 
 
   // Add Post
-  document.querySelector('#submitPost').addEventListener('click', function (e) {
+  document.querySelector('#submitPost').addEventListener('click', e => {
     e.preventDefault();
 
     let input = {
@@ -194,7 +176,7 @@
       created: new Date()
     }
 
-    // Save post
+    // Check if update or new post / Save post
     if (update) {
       xmlReqPatch(input, idPatch);
       update = false;
@@ -203,9 +185,7 @@
       start = 0;
       xmlReqGet(start);
     }
-    else {
-      xmlReqPost(input);
-    }
+    else xmlReqPost(input);
 
     inputTitle.value = "";
     inputContent.value = "";
